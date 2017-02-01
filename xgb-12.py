@@ -1,8 +1,6 @@
 # feature tuning by https://www.kaggle.com/yangnanhai/homesite-quote-conversion/keras-around-0-9633
 # and XGBoost by https://www.kaggle.com/sushize/homesite-quote-conversion/xgb-stop/run/104479
 
-
-
 import csv
 import numpy as np
 import pandas as pd
@@ -10,8 +8,8 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 import xgboost as xgb
 
-
 np.random.seed(1778)
+
 # XGBoost params:
 def get_params():
     #
@@ -27,7 +25,7 @@ def get_params():
     #
     return plst
 
-
+##features
 golden_feature=[("CoverageField1B","PropertyField21B"),
                 ("GeographicField6A","GeographicField8A"),
                 ("GeographicField6A","GeographicField13A"),
@@ -36,7 +34,7 @@ golden_feature=[("CoverageField1B","PropertyField21B"),
                 ("GeographicField8A","GeographicField11A")]
 
 
-
+##data loading functions##
 def load_data(need_normalize = True):
     train=pd.read_csv("../mah228/Downloads/train.csv")
     test=pd.read_csv("../mah228/Downloads/test.csv")
@@ -89,7 +87,7 @@ def load_data(need_normalize = True):
 
 print('Loading data...')
 
-
+##load dataset
 datasets=load_data()
 
 X_train, y_train = datasets[0]
@@ -102,7 +100,7 @@ xgtrain = xgb.DMatrix(X_train, y_train)
 xgtest = xgb.DMatrix(X_test)
 
 
-boost_round =  #CHANGE THIS BEFORE START
+boost_round = 2000 ##grid-search
 from sklearn.grid_search import GridSearchCV
 clf = xgb.train(get_params(),xgtrain,num_boost_round=boost_round,verbose_eval=True,maximize=False)
 clf = xgb.train(eval_metric = 'auc',
@@ -123,16 +121,15 @@ parameters = {
         'subsample': [0.9, 1.0],
         'colsample_bytree': [0.9, 1.0],
     }
-#Make predict
-
+#Make prediction
 test_preds = clf.predict(xgtest, ntree_limit=clf.best_iteration)
+
 # Save results
-#
 predictions_file = open("xgb_res1.csv", "w")
 open_file_object = csv.writer(predictions_file)
 open_file_object.writerow(["QuoteNumber", "QuoteConversion_Flag"])
 open_file_object.writerows(zip(submission["QuoteNumber"].values, test_preds))
 predictions_file.close()
-#
+
 print('Done.')
  
